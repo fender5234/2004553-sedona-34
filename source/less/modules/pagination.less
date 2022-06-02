@@ -1,0 +1,80 @@
+.pagination-title {
+  position: relative;
+  font-size: 18px;
+  line-height: 23px;
+  color: #333333;
+}
+
+.pagination-title::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 17px;
+  right: 21px;
+  width: 12px;
+  height: 7px;
+  mask-image: url("../images/svg/arrow-down-icon.svg");
+  background-color: #e6e6e6;
+}
+
+.pagination-container {
+  display: flex;
+  padding: 0 72px;
+  margin-bottom: 73px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination-list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.pagination-link {
+  display: block;
+  min-width: 55px;
+  border-radius: 4px;
+  background-color: #83b3d3;
+  text-decoration: none;
+  line-height: 26px;
+  text-align: center;
+  padding: 14px 16px 15px;
+  margin-right: 8px;
+  font-weight: 700;
+  font-size: 20px;
+  color: #ffffff;
+  box-sizing: border-box;
+  outline-offset: -3px;
+}
+
+.pagination-link-current {
+  background-color: #f2f2f2;
+  color: #000000;
+  display: block;
+  min-width: 55px;
+  border-radius: 4px;
+  text-decoration: none;
+  line-height: 26px;
+  text-align: center;
+  padding: 14px 16px 15px;
+  margin-right: 8px;
+  font-weight: 700;
+  font-size: 20px;
+  box-sizing: border-box;
+}
+
+.pagination-link:hover {
+  background-color: #68a2ca;
+}
+
+.pagination-link:focus {
+  background-color: #68a2ca;
+  outline: 3px solid #756257;
+}
+
+.pagination-link:active {
+  background-color: #68a2ca;
+  color: rgb(255, 255, 255, 0.3);
+}
