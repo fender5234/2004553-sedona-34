@@ -1,117 +1,134 @@
-const { src, dest, watch, series, parallel } = require('gulp');
-const nunjucks = require('nunjucks');
-const imagemin = require('gulp-imagemin');
-const server = require('browser-sync').create();
-const parser = require('posthtml-parser');
-const render = require('posthtml-render');
-const { getPosthtmlW3c } = require('pineglade-w3c');
+import autoprefixer from 'autoprefixer';
+import browser from 'browser-sync';
+import del from 'del';
+import eslint from 'gulp-eslint';
+import gulp from 'gulp';
+import gulpIf from 'gulp-if';
+import imagemin from 'gulp-imagemin';
+import htmlBeautify from 'gulp-html-beautify';
+import less from 'gulp-less';
+import lessSyntax from 'postcss-less';
+import lintspaces from 'gulp-lintspaces';
+import mozjpeg from 'imagemin-mozjpeg';
+import pngquant from 'imagemin-pngquant';
+import postcss from 'gulp-postcss';
+import postcssReporter from 'postcss-reporter';
+import posthtml from 'gulp-posthtml';
+import rename from 'gulp-rename';
+import stylelint from 'stylelint';
+import svgo from 'imagemin-svgo';
+import svgoConfig from './svgo.config.js';
 
-const isDev = process.env.NODE_ENV === 'development';
-const getPageName = (tree) => tree.options.from
-  .replace(/^.*source(\\+|\/+)(.*)\.html$/, '$2')
-  .replace(/\\/g, '/');
+const IS_DEV = process.env.NODE_ENV === 'development';
+const { src, dest, watch, series, parallel } = gulp;
+const checkLintspaces = () => lintspaces({
+  editorconfig: '.editorconfig'
+});
+const reportLintspaces = () => lintspaces.reporter({
+  breakOnWarning: !IS_DEV
+});
+const editorconfigSources = [
+  'source/njk/**/*.njk',
+  '*.json',
+  'source/img/**/*.svg',
+  'source/static/**/*.svg',
+  'source/sprite/**/*.svg'
+];
+const jsSources = [
+  'source/static/js/**/*.js',
+  '*.js'
+];
+const staticSources = ['source/static/**/*', 'source/static/**/.*'];
 
-const buildHTML = () => src(['source/**/*.html', '!source/**/_*.html'])
-  .pipe(require('gulp-posthtml')([
-    (() => (tree) => {
-      nunjucks.configure('source', { autoescape: false });
+export const testHTML = () => src('source/njk/pages/**/*.njk')
+  .pipe(posthtml())
+  .pipe(htmlBeautify())
+  .pipe(rename({ extname: '.html' }));
 
-      return parser(nunjucks.renderString(render(tree), {
-        isDev,
-        page: getPageName(tree)
-      }));
-    })(),
-    getPosthtmlW3c({
-      getSourceName: (tree) => `${getPageName(tree)}.html`
-    })
+export const buildHTML = () => testHTML()
+  .pipe(dest('build'));
+
+export const testEditorconfig = () => src(editorconfigSources)
+  .pipe(checkLintspaces())
+  .pipe(reportLintspaces());
+
+export const buildStyles = () => src('source/less/*.less', { sourcemaps: IS_DEV })
+  .pipe(less())
+  .pipe(postcss([
+    autoprefixer(),
+    stylelint({ fix: true })
   ]))
-  .pipe(require('gulp-html-beautify')())
-  .pipe(dest('.'));
+  .pipe(dest('build/styles', { sourcemaps: '.' }));
 
-const buildCSS = () => src(['source/**/*.css', '!source/**/_*.css'])
-  .pipe(require('gulp-postcss')([
-    require('postcss-easy-import')(),
-    require('stylelint')(),
-    require('autoprefixer')(),
-    require('postcss-reporter')({
+export const testStyles = () => src('source/less/**/*.less')
+  .pipe(checkLintspaces())
+  .pipe(reportLintspaces())
+  .pipe(postcss([
+    stylelint(),
+    postcssReporter({
       clearAllMessages: true,
-      throwError: false
+      throwError: !IS_DEV
     })
-  ]))
-  .pipe(dest('.'));
+  ], {
+    syntax: lessSyntax
+  }));
 
-const testBuildedCSS = () => src(['**/*.css', '!source/**/*.css', '!node_modules/**/*.css'])
-  .pipe(require('gulp-postcss')([
-    require('stylelint')({ fix: true }),
-    require('postcss-reporter')({
-      clearAllMessages: true,
-      throwError: false
-    })
-  ]));
+export const testScripts = () => src(jsSources)
+  .pipe(checkLintspaces())
+  .pipe(reportLintspaces())
+  .pipe(eslint({
+    fix: false
+  }))
+  .pipe(eslint.format())
+  .pipe(gulpIf(!IS_DEV, eslint.failAfterError()));
 
-const optimizeImages = () => src('source/**/*.{svg,png,jpg}')
-  .pipe(imagemin([
-    imagemin.svgo({
-      plugins: [
-        {
-          removeViewBox: false
-        },
-        {
-          removeTitle: true
-        },
-        {
-          cleanupNumericValues: {
-            floatPrecision: 2
-          }
-        },
-        {
-          cleanupNumericValues: {
-            floatPrecision: 2
-          }
-        },
-        {
-          convertPathData: {
-            floatPrecision: 2
-          }
-        },
-        {
-          transformsWithOnePath: {
-            floatPrecision: 2
-          }
-        },
-        {
-          convertTransform: {
-            floatPrecision: 2
-          }
-        },
-        {
-          cleanupListOfValues: {
-            floatPrecision: 2
-          }
-        }
-      ]
-    }),
-    imagemin.mozjpeg({ quality: 75, progressive: true }),
-    imagemin.optipng()
-  ]))
-  .pipe(dest('.'));
+export const optimizeImages = () => src('source/images/**/*.{svg,png,jpg}')
+  .pipe(gulpIf(!IS_DEV, imagemin([
+    svgo(svgoConfig),
+    pngquant(),
+    mozjpeg({ progressive: true, quality: 75 })
+  ])))
+  .pipe(dest('build/images'));
 
-const reload = (done) => {
-  server.reload();
+const server = (done) => {
+  browser.init({
+    server: {
+      baseDir: 'build'
+    },
+    cors: true,
+    notify: false,
+    ui: false,
+  });
   done();
 };
 
-const startServer = () => {
-  server.init({
-    cors: true,
-    server: '.',
-    ui: false
-  });
+export const copyStatic = () => src(staticSources)
+  .pipe(dest('build'));
 
-  watch('source/**/*.{html,svg}', series(buildHTML, reload));
-  watch('source/**/*.css', series(buildCSS, testBuildedCSS, reload));
-  watch('source/**/*.{svg,png,jpg}', series(optimizeImages, reload));
+export const cleanDestination = () => del('build');
+export const cleanDestinationAfter = () => del('build/pixelperfect');
+
+const reload = (done) => {
+  browser.reload();
+  done();
 };
 
-exports.test = testBuildedCSS;
-exports.default = series(parallel(buildHTML, buildCSS, optimizeImages), testBuildedCSS, startServer);
+const watcher = () => {
+  watch(editorconfigSources, series(testEditorconfig, buildHTML, reload));
+  watch('source/less/**/*.less', series(testStyles, buildStyles, reload));
+  watch('source/images/**/*.{svg,png,jpg}', series(optimizeImages, reload));
+  watch(staticSources, series(copyStatic, reload));
+  watch(jsSources, series(testScripts, reload));
+};
+
+const compilationTasks = [
+  cleanDestination,
+  parallel(buildHTML, buildStyles, optimizeImages, copyStatic)
+];
+if (!IS_DEV) {
+  compilationTasks.push(cleanDestinationAfter);
+}
+
+export const test = parallel(testHTML, testEditorconfig, testStyles, testScripts);
+export const build = series(...compilationTasks);
+export default series(test, build, server, watcher);

@@ -1,28 +1,47 @@
 {
-  "name": "study-tempate",
   "private": true,
-  "scripts": {
-    "start": "cross-env NODE_ENV=development gulp",
-    "test": "cross-env NODE_ENV=development gulp test"
-  },
-  "browserslist": [
-    "last 1 version",
-    "not dead",
-    "not IE 11"
-  ],
   "devDependencies": {
-    "autoprefixer": "10.4.2",
-    "browser-sync": "2.27.7",
+    "autoprefixer": "10.4.0",
+    "browser-sync": "2.27.10",
     "cross-env": "7.0.3",
+    "del": "6.0.0",
+    "eslint-config-htmlacademy": "5.1.2",
     "gulp": "4.0.2",
+    "gulp-eslint": "6.0.0",
     "gulp-html-beautify": "1.0.1",
-    "gulp-imagemin": "7.1.0",
+    "gulp-if": "3.0.0",
+    "gulp-imagemin": "8.0.0",
+    "gulp-less": "5.0.0",
+    "gulp-lintspaces": "1.0.1",
     "gulp-postcss": "9.0.1",
     "gulp-posthtml": "3.0.5",
+    "gulp-rename": "2.0.0",
+    "imagemin-mozjpeg": "10.0.0",
+    "imagemin-pngquant": "9.0.2",
+    "imagemin-svgo": "10.0.1",
     "nunjucks": "3.2.3",
-    "pineglade-w3c": "1.0.0",
-    "postcss-easy-import": "3.0.0",
+    "pineglade-w3c": "1.0.1",
+    "postcss-less": "6.0.0",
     "postcss-reporter": "7.0.5",
+    "pre-commit": "1.2.2",
     "stylelint": "13.13.1"
-  }
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production gulp build",
+    "postinstall": "npx browserslist@latest --update-db",
+    "start": "cross-env NODE_ENV=development gulp",
+    "test": "cross-env NODE_ENV=test gulp test"
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all",
+    "not < 0.25%"
+  ],
+  "engines": {
+    "node": "^16"
+  },
+  "type": "module",
+  "pre-commit": "test"
 }
