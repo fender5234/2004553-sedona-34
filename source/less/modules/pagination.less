@@ -1,7 +1,7 @@
 .pagination-title {
   position: relative;
   font-size: 18px;
-  line-height: 23px;
+  line-height: 21px;
   color: #333333;
 }
 
@@ -18,11 +18,22 @@
 }
 
 .pagination-container {
+  position: relative;
   display: flex;
-  padding: 0 72px;
+  padding: 5px 72px;
   margin-bottom: 73px;
   justify-content: space-between;
   align-items: center;
+}
+
+.pagination-container::after {
+  position: absolute;
+  top: -25px;
+  left: 73px;
+  content: "";
+  height: 1px;
+  width: 1055px;
+  background-color: #e6e6e6;
 }
 
 .pagination-list {
@@ -34,13 +45,13 @@
 
 .pagination-link {
   display: block;
-  min-width: 55px;
+  min-width: 60px;
   border-radius: 4px;
   background-color: #83b3d3;
   text-decoration: none;
-  line-height: 26px;
+  line-height: 36px;
   text-align: center;
-  padding: 14px 16px 15px;
+  padding: 9px 16px 15px;
   margin-right: 8px;
   font-weight: 700;
   font-size: 20px;
@@ -53,13 +64,13 @@
   background-color: #f2f2f2;
   color: #000000;
   display: block;
-  min-width: 55px;
+  min-width: 60px;
   border-radius: 4px;
   text-decoration: none;
-  line-height: 26px;
+  line-height: 36px;
   text-align: center;
-  padding: 14px 16px 15px;
-  margin-right: 8px;
+  padding: 9px 16px 15px;
+  margin-right: 9px;
   font-weight: 700;
   font-size: 20px;
   box-sizing: border-box;
